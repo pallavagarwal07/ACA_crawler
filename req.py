@@ -3,13 +3,28 @@ from bs4 import BeautifulSoup
 from tabulate import tabulate
 numItems = input("How many items to retrieve? ")
 url = "http://en.wikipedia.org/w/index.php?title=Special:RecentChanges&limit="+str(numItems)+"&days=30"
-r = requests.get(url, proxies={'http':'http://ironport2.iitk.ac.in:3128/'}).text
-#r = str(open('wiki.html', 'r').read())
+
+
+try:
+    r = requests.get(url).text
+    if 'authenticate yourself' in r:
+        throw(requests.exceptions.ProxyError)
+except requests.exceptions.ProxyError:
+    try:
+        r = requests.get(url, proxies={'http':'http://ironport1.iitk.ac.in:3128/'}).text
+    except requests.exceptions.SSLError:
+        try:
+            r = requests.get(url, proxies={'http':'http://ironport2.iitk.ac.in:3128/'}).text
+        except requests.exceptions.SSLError:
+            print "SSLError! Try logging to ironport1\/2 in browser and rerunning the script."
+            exit()
+
+
 
 soup = BeautifulSoup(r)
 links = soup.find_all("ul", {"class": "special"})
 arr = []
-arr[:] = ([s, 'Edit', "", [], [], []] for s in links[0].contents if 'Navigable' not in str(type(s)))
+arr[:] = ([s, 'Edit', "", "", "", ""] for s in links[0].contents if 'Navigable' not in str(type(s)))
 
 for itr in arr:
     dat = itr[0]
