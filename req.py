@@ -1,10 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
 from tabulate import tabulate
-numItems = input("How many items to retrieve? ")
+
+
+numItems = int(raw_input("How many items to retrieve? "))
 url = "http://en.wikipedia.org/w/index.php?title=Special:RecentChanges&limit="+str(numItems)+"&days=30"
 
-
+# Try without proxy first, and if it doesn't work, switch to ironport.
 try:
     r = requests.get(url).text
     if 'authenticate yourself' in r:
@@ -26,6 +28,7 @@ links = soup.find_all("ul", {"class": "special"})
 arr = []
 arr[:] = ([s, 'Edit', "", "", "", ""] for s in links[0].contents if 'Navigable' not in str(type(s)))
 
+# Classify the retrieved data as Page created, deleted, minor edit, edit, user added, user blocked.
 for itr in arr:
     dat = itr[0]
     for a in dat.contents:
@@ -51,4 +54,5 @@ for itr in arr:
                 itr[5] = a.string
     itr[0] = ""
 
+# Print the data in a neat and clean table
 print tabulate(arr, headers=["", "Type", "Change", "User", "Page", "Time"])
